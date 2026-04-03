@@ -1,5 +1,5 @@
-"""
-GMR IK Config Auto-Tuner
+r"""
+GMR IK Config Auto-Tuner.
 ========================
 
 Automatically optimises the IK configuration for a given
@@ -7,7 +7,7 @@ Automatically optimises the IK configuration for a given
 
 Quick start
 -----------
-**Phase 1 (MVP) – scale table + damping only:**
+**Phase 1 (MVP) - scale table + damping only:**
 
 .. code-block:: bash
 
@@ -20,7 +20,7 @@ Quick start
         --phase mvp \\
         --output_dir outputs/optimize_g1_lafan1
 
-**Phase 2 (full) – adds task-weight optimisation:**
+**Phase 2 (full) - adds task-weight optimisation:**
 
 .. code-block:: bash
 
@@ -80,14 +80,10 @@ from __future__ import annotations
 import argparse
 import csv
 import json
-import os
 import pathlib
 import sys
 import time
 import traceback
-from typing import List, Optional
-
-import numpy as np
 
 # ---------------------------------------------------------------------------
 # Ensure the repo root is on sys.path so that ``general_motion_retargeting``
@@ -100,7 +96,7 @@ if str(_REPO_ROOT) not in sys.path:
 
 try:
     import optuna
-    from optuna.samplers import TPESampler, CmaEsSampler, NSGAIISampler, RandomSampler
+    from optuna.samplers import CmaEsSampler, NSGAIISampler, RandomSampler, TPESampler
 except ImportError as _err:
     print(
         "[ERROR] optuna is required for IK config optimisation.\n"
@@ -109,20 +105,20 @@ except ImportError as _err:
     )
     sys.exit(1)
 
-from general_motion_retargeting.benchmark import (
+from general_motion_retargeting.benchmark import (  # noqa: E402
     DatasetLoader,
     IKConfigParamSpace,
     RetargetingEvaluator,
 )
-from general_motion_retargeting.benchmark.evaluator import EvaluatorWeights
-from general_motion_retargeting.params import IK_CONFIG_DICT
-
+from general_motion_retargeting.benchmark.evaluator import EvaluatorWeights  # noqa: E402
+from general_motion_retargeting.params import IK_CONFIG_DICT  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # Argument parser
 # ---------------------------------------------------------------------------
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build and return the CLI argument parser for the IK config optimiser."""
     p = argparse.ArgumentParser(
         description="Automatically optimise GMR IK configs using Optuna.",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -308,7 +304,7 @@ def make_objective(
                 ik_config_override=ik_config,
                 damping=damping,
             )
-        except Exception as exc:
+        except Exception:
             if verbose:
                 traceback.print_exc()
             if multi_objective:
@@ -351,7 +347,7 @@ def save_best_config(
     print(f"[✓] Best params saved to    {output_dir / 'best_params.json'}")
 
 
-def save_trials_csv(study: "optuna.Study", output_dir: pathlib.Path) -> None:
+def save_trials_csv(study: optuna.Study, output_dir: pathlib.Path) -> None:
     """Write all trial results to a CSV file."""
     csv_path = output_dir / "all_trials.csv"
     trials = [t for t in study.trials if t.state == optuna.trial.TrialState.COMPLETE]
@@ -364,7 +360,7 @@ def save_trials_csv(study: "optuna.Study", output_dir: pathlib.Path) -> None:
 
     with open(csv_path, "w", newline="") as fh:
         writer = csv.writer(fh)
-        header = ["trial_number", "value"] + param_names + attr_names
+        header = ["trial_number", "value", *param_names, *attr_names]
         writer.writerow(header)
         for t in trials:
             val = t.value if not isinstance(t.values, (list, tuple)) else str(t.values)
@@ -378,28 +374,28 @@ def save_trials_csv(study: "optuna.Study", output_dir: pathlib.Path) -> None:
     print(f"[✓] Trial CSV saved to {csv_path}")
 
 
-def save_plots(study: "optuna.Study", output_dir: pathlib.Path, multi_objective: bool) -> None:
+def save_plots(study: optuna.Study, output_dir: pathlib.Path, multi_objective: bool) -> None:
     """Save optimisation history and param importance plots (requires matplotlib)."""
     try:
         import matplotlib  # noqa: F401
         import optuna.visualization.matplotlib as vis
     except ImportError:
-        print("[INFO] matplotlib not available – skipping plots.")
+        print("[INFO] matplotlib not available - skipping plots.")
         return
 
     try:
         if not multi_objective:
             ax = vis.plot_optimization_history(study)
             ax.figure.savefig(str(output_dir / "optimization_history.png"), dpi=120)
-            print(f"[✓] Optimisation history plot saved.")
+            print("[✓] Optimisation history plot saved.")
 
             ax2 = vis.plot_param_importances(study)
             ax2.figure.savefig(str(output_dir / "param_importances.png"), dpi=120)
-            print(f"[✓] Parameter importance plot saved.")
+            print("[✓] Parameter importance plot saved.")
         else:
             ax = vis.plot_pareto_front(study, target_names=["IK error", "Smoothness"])
             ax.figure.savefig(str(output_dir / "pareto_front.png"), dpi=120)
-            print(f"[✓] Pareto front plot saved.")
+            print("[✓] Pareto front plot saved.")
     except Exception as exc:
         print(f"[WARN] Could not save plots: {exc}")
 
@@ -412,7 +408,8 @@ def print_benchmark_table(metrics: dict) -> None:
     rows = [
         ("IK tracking error (mean)", f"{metrics.get('ik_error', float('nan')):.6f}"),
         ("Smoothness penalty (var)", f"{metrics.get('smoothness_penalty', float('nan')):.6f}"),
-        ("Joint-limit violation rate", f"{metrics.get('joint_limit_violation_rate', float('nan')):.4%}"),
+        ("Joint-limit violation rate",
+         f"{metrics.get('joint_limit_violation_rate', float('nan')):.4%}"),
         ("Root trajectory DTW dist.", f"{metrics.get('root_dtw_distance', float('nan')):.6f}"),
         ("Composite score", f"{metrics.get('composite_score', float('nan')):.6f}"),
         ("Sequences evaluated", str(metrics.get('n_sequences', 'N/A'))),
@@ -428,6 +425,7 @@ def print_benchmark_table(metrics: dict) -> None:
 # ---------------------------------------------------------------------------
 
 def main() -> None:
+    """Entry point: parse CLI args, load data, run Optuna study, save outputs."""
     parser = build_parser()
     args = parser.parse_args()
 

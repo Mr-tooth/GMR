@@ -1,0 +1,65 @@
+# ruff.toml — strict lint rules for GMR benchmark code.
+#
+# Scope: applies project-wide, with per-file relaxations for test files
+# (docstrings not required in tests) and legacy scripts that predate this
+# config (excluded from D-rule enforcement).
+#
+# Key rule sets enabled:
+#   E/W  – pycodestyle style errors and warnings
+#   F    – pyflakes (unused imports F401, undefined names F821, etc.)
+#   I    – isort import ordering
+#   N    – pep8-naming conventions
+#   D    – pydocstyle (NumPy convention): every function/class must have
+#          at minimum a one-line summary docstring
+#   UP   – pyupgrade (use modern Python 3.10+ syntax)
+#   B    – flake8-bugbear (likely bugs and design issues)
+#   SIM  – flake8-simplify (simplifiable code patterns)
+#   RUF  – ruff-specific rules (miscellaneous correctness)
+
+target-version = "py310"
+line-length = 100
+
+[lint]
+select = [
+    "E",    # pycodestyle – style errors
+    "F",    # pyflakes   – unused imports, undefined names
+    "W",    # pycodestyle – style warnings (e.g. W291 trailing whitespace)
+    "I",    # isort      – import ordering
+    "N",    # pep8-naming
+    "D",    # pydocstyle – docstring presence and formatting
+    "UP",   # pyupgrade  – modernise syntax
+    "B",    # flake8-bugbear – likely bugs
+    "SIM",  # flake8-simplify
+    "RUF",  # ruff-specific
+]
+ignore = [
+    # Module-level docstrings: not enforced (many existing modules lack them)
+    "D100",
+    # Package __init__.py docstrings: not enforced
+    "D104",
+    # Missing docstring in public package (same as D104, belt-and-suspenders)
+    "D205",  # blank line between summary and description (too strict for short docs)
+    # Allow imperative mood in docstrings – the existing codebase uses it
+    "D401",
+    # Allow multi-line summaries (NumPy convention is verbose-friendly)
+    "D200",
+    # Magic method docstrings are optional (__init__ is usually self-documenting)
+    "D107",
+]
+
+[lint.pydocstyle]
+# Use NumPy docstring convention throughout (matches existing benchmark code)
+convention = "numpy"
+
+[lint.per-file-ignores]
+# Test files: relax all docstring rules (tests are self-documenting by name)
+"tests/**" = ["D"]
+# Legacy utility scripts that predate this config
+"scripts/smplx_to_robot.py" = ["D"]
+"scripts/bvh_to_robot.py" = ["D"]
+"scripts/vis_robot_motion.py" = ["D"]
+"scripts/smplx_to_robot_dataset.py" = ["D"]
+"scripts/bvh_to_robot_dataset.py" = ["D"]
+# Third-party vendored code – never touch
+"third_party/**" = ["ALL"]
+"general_motion_retargeting/utils/lafan_vendor/**" = ["ALL"]

@@ -1,5 +1,5 @@
 """
-GMR Benchmark: IK Config Auto-Tuning System
+GMR Benchmark: IK Config Auto-Tuning System.
 
 This sub-package provides tools for automatically optimising the IK configuration
 of the General Motion Retargeting (GMR) system using black-box optimisation
@@ -16,8 +16,8 @@ evaluator    : Runs retargeting on a batch of sequences and computes quality
                trajectory DTW distance).
 """
 
-from .evaluator import RetargetingEvaluator
 from .dataset_loader import DatasetLoader
+from .evaluator import RetargetingEvaluator
 from .param_space import IKConfigParamSpace
 
-__all__ = ["RetargetingEvaluator", "DatasetLoader", "IKConfigParamSpace"]
+__all__ = ["DatasetLoader", "IKConfigParamSpace", "RetargetingEvaluator"]

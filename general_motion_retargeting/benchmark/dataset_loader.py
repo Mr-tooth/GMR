@@ -21,7 +21,7 @@ Usage example
     )
     sequences = loader.load_sequences()
     # sequences: list of (frames, human_height) tuples where
-    #   frames is List[dict] – one dict per frame mapping joint name → (pos, quat)
+    #   frames is List[dict] - one dict per frame mapping joint name → (pos, quat)
     #   human_height is float
 
 Notes
@@ -34,15 +34,12 @@ from __future__ import annotations
 
 import pathlib
 import random
-from typing import List, Optional, Tuple
-
-import numpy as np
 
 # ---------------------------------------------------------------------------
 # Type alias
 # ---------------------------------------------------------------------------
 Frame = dict  # {joint_name: (np.ndarray[3], np.ndarray[4])}
-Sequence = Tuple[List[Frame], float]  # (frames, human_height)
+Sequence = tuple[list[Frame], float]  # (frames, human_height)
 
 
 # ---------------------------------------------------------------------------
@@ -55,8 +52,8 @@ class DatasetLoader:
     Parameters
     ----------
     dataset_type:
-        ``'lafan1'`` – BVH files from the LaFan1 dataset.
-        ``'amass'``  – ``.npz`` SMPL-X files from the AMASS dataset.
+        ``'lafan1'`` - BVH files from the LaFan1 dataset.
+        ``'amass'``  - ``.npz`` SMPL-X files from the AMASS dataset.
     data_path:
         Root directory containing the dataset files.  For LaFan1 this should
         point at the directory holding ``.bvh`` files (or a parent thereof).
@@ -84,10 +81,10 @@ class DatasetLoader:
         self,
         dataset_type: str,
         data_path: str | pathlib.Path,
-        max_sequences: Optional[int] = None,
-        max_frames_per_seq: Optional[int] = 200,
+        max_sequences: int | None = None,
+        max_frames_per_seq: int | None = 200,
         target_fps: int = 30,
-        smplx_body_model_path: Optional[str | pathlib.Path] = None,
+        smplx_body_model_path: str | pathlib.Path | None = None,
         seed: int = 42,
         verbose: bool = True,
     ) -> None:
@@ -109,7 +106,7 @@ class DatasetLoader:
     # Public interface
     # ------------------------------------------------------------------
 
-    def load_sequences(self) -> List[Sequence]:
+    def load_sequences(self) -> list[Sequence]:
         """Discover and load all (or up to *max_sequences*) sequences.
 
         Returns
@@ -127,7 +124,7 @@ class DatasetLoader:
     # Internal helpers
     # ------------------------------------------------------------------
 
-    def _find_files(self, pattern: str) -> List[pathlib.Path]:
+    def _find_files(self, pattern: str) -> list[pathlib.Path]:
         """Recursively find all files matching *pattern* under ``data_path``."""
         files = sorted(self.data_path.rglob(pattern))
         if not files:
@@ -140,19 +137,19 @@ class DatasetLoader:
             files = files[: self.max_sequences]
         return files
 
-    def _truncate(self, frames: List[Frame]) -> List[Frame]:
+    def _truncate(self, frames: list[Frame]) -> list[Frame]:
         if self.max_frames_per_seq is not None:
             return frames[: self.max_frames_per_seq]
         return frames
 
-    def _load_lafan1(self) -> List[Sequence]:
+    def _load_lafan1(self) -> list[Sequence]:
         from general_motion_retargeting.utils.lafan1 import load_bvh_file
 
         files = self._find_files("*.bvh")
         if self.verbose:
             print(f"[DatasetLoader] Found {len(files)} BVH file(s) under {self.data_path}")
 
-        sequences: List[Sequence] = []
+        sequences: list[Sequence] = []
         for bvh_path in files:
             try:
                 frames, human_height = load_bvh_file(str(bvh_path), format="lafan1")
@@ -165,10 +162,10 @@ class DatasetLoader:
                     print(f"  [WARN] Failed to load {bvh_path.name}: {exc}")
         return sequences
 
-    def _load_amass(self) -> List[Sequence]:
+    def _load_amass(self) -> list[Sequence]:
         from general_motion_retargeting.utils.smpl import (
-            load_smplx_file,
             get_smplx_data_offline_fast,
+            load_smplx_file,
         )
 
         if self.smplx_body_model_path is None:
@@ -180,7 +177,7 @@ class DatasetLoader:
         if self.verbose:
             print(f"[DatasetLoader] Found {len(files)} NPZ file(s) under {self.data_path}")
 
-        sequences: List[Sequence] = []
+        sequences: list[Sequence] = []
         for npz_path in files:
             try:
                 smplx_data, body_model, smplx_output, human_height = load_smplx_file(
