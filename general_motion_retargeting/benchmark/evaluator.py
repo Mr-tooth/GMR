@@ -250,7 +250,7 @@ class RetargetingEvaluator:
                 continue
             vel = np.diff(qpos_seq, axis=0)  # shape (T-1, nq)
             # Use only the articulated joint part (skip free joint: first 7)
-            joint_vel = vel[:, 7:] if qpos_seq.shape[1] > 7 else vel
+            joint_vel = vel[:, 7:] if qpos_seq.shape[1] >= 7 else vel
             smooth_vals.append(float(np.var(joint_vel)))
         smoothness_penalty = float(np.mean(smooth_vals)) if smooth_vals else 0.0
 

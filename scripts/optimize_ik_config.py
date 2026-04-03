@@ -267,14 +267,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
     out.add_argument(
         "--tune_height",
-        action="store_true",
+        action=argparse.BooleanOptionalAction,
         default=True,
-        help="Include human_height_assumption in the search space.",
-    )
-    out.add_argument(
-        "--no_tune_height",
-        dest="tune_height",
-        action="store_false",
+        help="Include human_height_assumption in the search space (default: enabled).",
     )
     out.add_argument(
         "--verbose",
@@ -533,7 +528,7 @@ def main() -> None:
         if args.sampler == "tpe":
             sampler = TPESampler(n_startup_trials=args.n_random_startup)
         elif args.sampler == "cmaes":
-            sampler = CmaEsSampler(n_startup_trials=args.n_random_startup)
+            sampler = CmaEsSampler()
         else:
             sampler = RandomSampler()
 

@@ -143,7 +143,7 @@ class IKConfigParamSpace:
                     pos_key = f"{table_key}_{frame_name}_pos_weight"
                     rot_key = f"{table_key}_{frame_name}_rot_weight"
                     params[pos_key] = trial.suggest_float(pos_key, WEIGHT_LOW, WEIGHT_HIGH)
-                    params[rot_key] = trial.suggest_float(rot_key, 1.0, WEIGHT_HIGH)
+                    params[rot_key] = trial.suggest_float(rot_key, WEIGHT_LOW, WEIGHT_HIGH)
 
         return params
 
