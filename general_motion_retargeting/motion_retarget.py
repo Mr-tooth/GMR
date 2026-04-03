@@ -19,6 +19,7 @@ class GeneralMotionRetargeting:
         damping: float=5e-1, # change from 1e-1 to 1e-2.
         verbose: bool=True,
         use_velocity_limit: bool=False,
+        ik_config_override: dict = None,
     ) -> None:
 
         # load the robot model
@@ -28,7 +29,8 @@ class GeneralMotionRetargeting:
         self.model = mj.MjModel.from_xml_path(self.xml_file)
         
         # Print DoF names in order
-        print("[GMR] Robot Degrees of Freedom (DoF) names and their order:")
+        if verbose:
+            print("[GMR] Robot Degrees of Freedom (DoF) names and their order:")
         self.robot_dof_names = {}
         for i in range(self.model.nv):  # 'nv' is the number of DoFs
             dof_name = mj.mj_id2name(self.model, mj.mjtObj.mjOBJ_JOINT, self.model.dof_jntid[i])
@@ -37,7 +39,8 @@ class GeneralMotionRetargeting:
                 print(f"DoF {i}: {dof_name}")
             
             
-        print("[GMR] Robot Body names and their IDs:")
+        if verbose:
+            print("[GMR] Robot Body names and their IDs:")
         self.robot_body_names = {}
         for i in range(self.model.nbody):  # 'nbody' is the number of bodies
             body_name = mj.mj_id2name(self.model, mj.mjtObj.mjOBJ_BODY, i)
@@ -45,7 +48,8 @@ class GeneralMotionRetargeting:
             if verbose:
                 print(f"Body ID {i}: {body_name}")
         
-        print("[GMR] Robot Motor (Actuator) names and their IDs:")
+        if verbose:
+            print("[GMR] Robot Motor (Actuator) names and their IDs:")
         self.robot_motor_names = {}
         for i in range(self.model.nu):  # 'nu' is the number of actuators (motors)
             motor_name = mj.mj_id2name(self.model, mj.mjtObj.mjOBJ_ACTUATOR, i)
@@ -53,11 +57,16 @@ class GeneralMotionRetargeting:
             if verbose:
                 print(f"Motor ID {i}: {motor_name}")
 
-        # Load the IK config
-        with open(IK_CONFIG_DICT[src_human][tgt_robot]) as f:
-            ik_config = json.load(f)
-        if verbose:
-            print("Use IK config: ", IK_CONFIG_DICT[src_human][tgt_robot])
+        # Load the IK config (use override dict if provided, otherwise read from file)
+        if ik_config_override is not None:
+            ik_config = ik_config_override
+            if verbose:
+                print("Use IK config: (override dict)")
+        else:
+            with open(IK_CONFIG_DICT[src_human][tgt_robot]) as f:
+                ik_config = json.load(f)
+            if verbose:
+                print("Use IK config: ", IK_CONFIG_DICT[src_human][tgt_robot])
         
         # compute the scale ratio based on given human height and the assumption in the IK config
         if actual_human_height is not None:
