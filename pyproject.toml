@@ -1,0 +1,103 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "motion-player"
+version = "0.1.0"
+description = "Interactive motion dataset player and editor for humanoid robots (MuJoCo-first)"
+readme = "README_motion_player.md"
+license = { text = "MIT" }
+authors = [
+    { name = "Mr-tooth", email = "" },
+]
+keywords = [
+    "humanoid", "robot", "motion", "mujoco", "AMP", "retargeting",
+    "motion-capture", "animation", "visualization"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+requires-python = ">=3.10"
+
+# Core dependencies — kept deliberately minimal.
+# Heavy backends are isolated in optional extras.
+dependencies = [
+    "numpy>=1.24",
+    "scipy>=1.10",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+# MuJoCo rendering backend (recommended)
+mujoco = [
+    "mujoco>=3.0",
+]
+# Pinocchio-based IK editing (P2)
+ik = [
+    # Install via conda-forge: conda install -c conda-forge pinocchio
+    # PyPI wheel: pin>=3.0 (unofficial)
+    "pin>=3.0",
+]
+# NVIDIA HumanoidViewMotion backend (P2)
+# Note: isaacgym is NOT on PyPI; install from NVIDIA developer portal first.
+nv = [
+    # isaacgym is listed here as documentation; actual install is manual.
+]
+# Developer tooling
+dev = [
+    "pytest>=7.0",
+    "pytest-cov",
+    "ruff",
+    "mujoco>=3.0",  # needed for integration tests
+]
+
+[project.scripts]
+# Primary CLI entry point
+motion-player = "motion_player.cli:main"
+
+[project.urls]
+Repository = "https://github.com/Mr-tooth/GMR"
+Issues = "https://github.com/Mr-tooth/GMR/issues"
+
+# ---------------------------------------------------------------------------
+# Packaging configuration
+# ---------------------------------------------------------------------------
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["motion_player*"]
+
+[tool.setuptools.package-data]
+"motion_player" = ["py.typed"]
+
+# ---------------------------------------------------------------------------
+# Ruff (linting / formatting) — inherit settings from project ruff.toml
+# ---------------------------------------------------------------------------
+
+[tool.ruff]
+line-length = 99
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "C4", "SIM"]
+ignore = [
+    "N999",   # module name can be non-PEP8 (motion_player)
+    "B008",   # function calls in default args (acceptable in CLI)
+]
+
+# ---------------------------------------------------------------------------
+# Pytest
+# ---------------------------------------------------------------------------
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
